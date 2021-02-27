@@ -13,8 +13,26 @@
  * 
  */
 function playGame() {
-    const selections = ["rock", "paper", "scissors"];
-    const resultLabels = ["You win!", "You lose!", "It's a tie."];
+    const selections = {
+        ROCK : {
+            value: "rock",
+            id: 0
+        },
+        PAPER : {
+            value: "paper",
+            id: 1
+        },
+        SCISSORS : {
+            value: "scissors",
+            id: 2
+        }
+    }
+    const resultLabels = {
+        WIN : "You Win!",
+        LOSE : "You lose!",
+        TIE : "It's a tie."
+    }
+    
     let rounds;
     let playerSelection = "";
     let pcSelection = 0;
@@ -42,11 +60,11 @@ function playGame() {
             selected = validateSelection(playerSelection, selections);
         }
        
-        pcSelection = randomNum(selections.length);
+        pcSelection = randomNum(selections);
         console.log("Player chose " + playerSelection);
-        console.log("PC chose " + selections[pcSelection]);
+        console.log("PC chose " + pcSelection);
 
-        results = playRound(playerSelection, selections[pcSelection], selections, results);
+        results = playRound(playerSelection, pcSelection, selections, results);
         
         displayScore(results, resultLabels);
     }
@@ -57,7 +75,7 @@ function playGame() {
  * 
  * @param {string} playerSelection user entered input from prompt
  * @param {string} pcSelection The computer random generated selection.
- * @param {array} selections The string array contains predefined selections.
+ * @param {object} selections The key-value pair object contains predefined selections.
  * @param {object} results The key-value pair object that contains the score.
  * @return (object) The key-value pair object that contains the score.
  */
@@ -66,7 +84,7 @@ function playRound(playerSelection, pcSelection, selections, results) {
         results.tie++;
         results.lastResult = 2;
         return results;
-    } else if (playerSelection == selections[0] && pcSelection == selections[2] || playerSelection == selections[1] && pcSelection == selections[0] || playerSelection == selections[2] && pcSelection == selections[1]) {
+    } else if (playerSelection == selections.ROCK.value && pcSelection == selections.SCISSORS.value || playerSelection == selections.PAPER.value && pcSelection == selections.ROCK.value || playerSelection == selections.SCISSORS.value && pcSelection == selections.PAPER.value) {
         results.player++;
         results.lastResult = 0;
         return results;
@@ -90,13 +108,21 @@ function promptUser(message) {
 
 /**
  * 
- * Generate random number that will be the computer selection.
+ * Generate a random number which corresponding to a selection in the list of selections.
  * 
- * @param {number} length The largest number can be generated (inclusive to length).
- * @return {number} The random number generates in range from 0 to length.
+ * @param {object} selections The key-value pair contains predefined selections
+ * @return {string} The random computer selection.
  */
-function randomNum(length) {
-    return Math.floor(Math.random() * length);
+function randomNum(selections) {
+    
+    let randomNum = Math.floor(Math.random() * Object.keys(selections).length);
+
+    for (const[key, value] of Object.entries(selections)) {
+        if (value.id == randomNum) {
+            return value.value;
+        }
+    }
+    return selections.ROCK.value;
 }
 
 /**
@@ -104,10 +130,20 @@ function randomNum(length) {
  * Display the current score after each round.
  * 
  * @param {object} results The key-value pair object that contains results/scores 
- * @param {array} resultLabels The labels that will display after each round.
+ * @param {object} resultLabels The key-value pair object labels that will display after each round.
  */
 function displayScore(results, resultLabels) {
-    console.log(resultLabels[results.lastResult]);
+    let resultLabel = "";
+    if (results.lastResult == 0) {
+        resultLabel = resultLabels.WIN;
+    } else if (results.lastResult == 1) {
+        resultLabel = resultLabels.LOSE;
+    } else if (results.lastResult == 2) {
+        resultLabel = resultLabels.TIE;
+    } else {
+        resultLabel = "Something went wrong.";
+    }
+    console.log(resultLabel);
     console.log("The current score, Player: " + results.player + "\tPC: " + results.pc + "\tTie: " + results.tie);
     console.log("End Round");
 }
@@ -117,17 +153,19 @@ function displayScore(results, resultLabels) {
  * Validate the user entered input is in the given string array
  * 
  * @param {string} selection The user entered input.
- * @param {array} selections The string array contains predefined selections that user input will be compare against.
+ * @param {object} selections The key-value object contains predefined selections that user input will be compare against.
  * @return Return true if the user entered input is in the predefined selection array, otherwise false.
  */
 function validateSelection(selection, selections) {
     selection = selection.toLowerCase();
-    for (x = 0; x < selections.length; x++) {
-        if (selection == selections[x]) {
+
+    for (const[key, value] of Object.entries(selections)) {
+        if (value.value == selection) {
             return true;
         }
     }
     return false;
+
 }
 
 /**
